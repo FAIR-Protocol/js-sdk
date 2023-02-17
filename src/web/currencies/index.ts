@@ -8,6 +8,7 @@ import axios from "axios";
 import utils from "../../common/utils";
 import AptosConfig from "./aptos";
 import type WebBundlr from "web";
+import ArweaveConfig from "./arweave";
 
 export default function getCurrency(bundlr: WebBundlr, currency: string, wallet: any, providerUrl?: string, contractAddress?: string): BaseCurrency {
   switch (currency) {
@@ -80,6 +81,15 @@ export default function getCurrency(bundlr: WebBundlr, currency: string, wallet:
         ticker: "APTOS",
         providerUrl: providerUrl ?? "https://fullnode.mainnet.aptoslabs.com/v1",
         wallet,
+      });
+    case "arweave":
+      return new ArweaveConfig({
+        name: "arweave",
+        ticker: "AR",
+        minConfirm: 10,
+        providerUrl: providerUrl ?? "https://arweave.net",
+        wallet,
+        isSlow: true,
       });
     default:
       throw new Error(`Unknown/Unsupported currency ${currency}`);
