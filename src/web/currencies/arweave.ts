@@ -135,9 +135,9 @@ export default class ArweaveConfig extends BaseWebCurrency {
         return await (await this.getProvider()).transactions.post(data);
     }
 
-    async createTx(amount: BigNumber.Value, to: string, fee?: string): Promise<{ txId: string | undefined; tx: any; }> {
+    async createTx(amount: BigNumber, to: string, fee?: string): Promise<{ txId: string | undefined; tx: any; }> {
         const arweave = await this.getProvider();
-        const tx = await arweave.createTransaction({ quantity: (new BigNumber(amount)).toString(), reward: fee, target: to }, this.wallet);
+        const tx = await arweave.createTransaction({ quantity: amount.toString(), reward: fee, target: to }, this.wallet);
         await arweave.transactions.sign(tx, this.wallet);
         return { txId: tx.id, tx };
     }
