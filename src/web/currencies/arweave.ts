@@ -58,8 +58,8 @@ class InjectedArweaveSigner implements Signer {
 
 
 export default class ArweaveConfig extends BaseWebCurrency {
-    protected signer: InjectedArweaveSigner;
-    protected providerInstance: Arweave;
+    protected signer!: InjectedArweaveSigner;
+    protected providerInstance?: Arweave;
 
     constructor(config: CurrencyConfig) {
       super(config);
