@@ -6,6 +6,7 @@ import { CurrencyConfig, Tx } from "../../common/types";
 import base64url from "base64url";
 import BaseWebCurrency from "../currency";
 import { SignatureConfig, SIG_CONFIG } from "arbundles/src/constants";
+import { JWKInterface } from "arbundles/src/interface-jwk";
 
 class InjectedArweaveSigner implements Signer {
   private signer: any;
@@ -137,8 +138,10 @@ export default class ArweaveConfig extends BaseWebCurrency {
 
     async createTx(amount: BigNumber, to: string, fee?: string): Promise<{ txId: string | undefined; tx: any; }> {
         const arweave = await this.getProvider();
-        const tx = await arweave.createTransaction({ quantity: amount.toString(), reward: fee, target: to }/* , this.wallet */); // ignore wallet param in order to use injected wallet
-        await arweave.transactions.sign(tx/* , this.wallet */);
+        // use _address property or default to empty string
+        const tx = await arweave.createTransaction({ quantity: amount.toString(), reward: fee, target: to }, { n: this._address || '' } as JWKInterface);
+        // do not pass wallet argument as it will be injected by browser wallet
+        await arweave.transactions.sign(tx);
         return { txId: tx.id, tx };
     }
 
