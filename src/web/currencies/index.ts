@@ -84,6 +84,7 @@ export default function getCurrency(bundlr: WebBundlr, currency: string, wallet:
       });
     case "arweave":
       return new ArweaveConfig({
+        bundlr,
         name: "arweave",
         ticker: "AR",
         minConfirm: 10,
