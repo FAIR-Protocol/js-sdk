@@ -1,20 +1,53 @@
-import { ArconnectSigner } from "arbundles";
 import BigNumber from "bignumber.js";
 import crypto from "crypto";
 import type { TokenConfig, Tx } from "../../common/types";
 import base64url from "base64url";
 import { Arweave } from "../utils";
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type * as _ from "arconnect";
 import BaseWebToken from "../token";
+import { SIG_CONFIG, SignatureConfig, type Signer } from "arbundles";
+
+class InjectedArweaveSigner implements Signer {
+  private signer: any;
+  public publicKey!: Buffer;
+  readonly ownerLength: number = SIG_CONFIG[SignatureConfig.ARWEAVE].pubLength;
+  readonly signatureLength: number = SIG_CONFIG[SignatureConfig.ARWEAVE].sigLength;
+  readonly signatureType = SignatureConfig.ARWEAVE;
+  protected arweave: Arweave;
+
+  constructor(windowArweaveWallet: any, arweave: Arweave) {
+    this.signer = windowArweaveWallet;
+    this.arweave = arweave;
+  }
+
+  async setPublicKey(): Promise<void> {
+    const arOwner = await this.signer.getActivePublicKey();
+    this.publicKey = base64url.toBuffer(arOwner);
+  }
+
+  async sign(message: Uint8Array): Promise<Uint8Array> {
+    if (!this.publicKey) {
+      await this.setPublicKey();
+    }
+
+    const dataItem = Buffer.from(message.buffer.slice(message.byteOffset, message.byteOffset + message.byteLength));
+
+    const signature: ArrayBufferLike = await this.signer.signDataItem(dataItem);
+    const buf = new Uint8Array(Object.values(signature));
+    return buf;
+  }
+
+  async refresh(wallet: any): Promise<void> {
+    this.signer = wallet;
+    await this.setPublicKey();
+  }
+}
 
 export default class ArweaveConfig extends BaseWebToken {
   protected declare providerInstance: Arweave;
   public isSlow = true;
   opts?: { provider?: "arconnect" | "arweave.app"; network?: string };
   protected declare wallet: Window["arweaveWallet"];
-  protected signerInstance: ArconnectSigner;
+  protected signerInstance: InjectedArweaveSigner;
   constructor(config: TokenConfig) {
     super(config);
     this.base = ["winston", 1e12];
@@ -72,11 +105,11 @@ export default class ArweaveConfig extends BaseWebToken {
     return this.getSigner().sign(data);
   }
 
-  getSigner(): ArconnectSigner {
+  getSigner(): InjectedArweaveSigner {
     if (this.signerInstance) return this.signerInstance;
     switch (this?.opts?.provider ?? "arconnect") {
       case "arconnect":
-        this.signerInstance = new ArconnectSigner(this.wallet, this.getProvider());
+        this.signerInstance = new InjectedArweaveSigner(this.wallet, this.getProvider());
     }
     return this.signerInstance;
   }

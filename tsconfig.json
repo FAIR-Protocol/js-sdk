@@ -26,7 +26,10 @@
       "$/utils": [
         "node/utils.ts"
       ]
-    }
+    },
+    "types": [
+      "arconnect"
+    ]
   },
   "ts-node": {
     "require": ["tsconfig-paths/register"],
